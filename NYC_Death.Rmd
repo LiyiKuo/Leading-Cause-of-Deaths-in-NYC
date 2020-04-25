@@ -1,0 +1,274 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(dygraphs)
+library(gridExtra)
+library(rlist)
+library(plotly)
+
+#setwd("~/Desktop/WhatKillsNewYorkers")
+getwd()
+df = read.csv("New_York_City_Leading_Causes_of_Death.csv")
+
+# Observe Data 
+sapply(df, class)
+df <- df[-c(1097,1096,1095), ]
+summary(df)
+
+#removing all factors from numeric data in dataframe
+df$Deaths <- as.numeric(as.character(df$Deaths))
+df$Death.Rate <- as.numeric(as.character(df$Death.Rate))
+df$Age.Adjusted.Death.Rate <- as.numeric(as.character(df$Age.Adjusted.Death.Rate))
+df$Year <- as.numeric(as.character(df$Year))
+df$Leading.Cause <-(as.character(df$Leading.Cause))
+df$Sex <-(as.character(df$Sex))
+df$Race.Ethnicity <-as.character(df$Race.Ethnicity)
+
+
+df$Leading.Cause <- gsub("Diseases of Heart (I00-I09, I11, I13, I20-I51)", "Hearts Disease", df$Leading.Cause, perl=FALSE)
+df$Leading.Cause <- gsub("Malignant Neoplasms (Cancer: C00-C97)", "Cancer", df$Leading.Cause)
+df$Leading.Cause <- gsub("Influenza (Flu) and Pneumonia (J09-J18)", "Flu", df$Leading.Cause)
+df$Leading.Cause <- gsub("Mental and Behavioral Disorders due to Accidental Poisoning and Other Psychoactive Substance Use (F11-F16, F18-F19, X40-X42, X44)", "Accident Poisoning", df$Leading.Cause)
+df$Leading.Cause <- gsub("Diabetes Mellitus (E10-E14)", "Diabetes", df$Leading.Cause)
+df$Leading.Cause <- gsub("Accidents Except Drug Poisoning (V01-X39, X43, X45-X59, Y85-Y86)", "Accidents", df$Leading.Cause)
+df$Leading.Cause <- gsub("Cerebrovascular Disease (Stroke: I60-I69)", "Stroke", df$Leading.Cause)
+df$Leading.Cause <- gsub("Human Immunodeficiency Virus Disease (HIV: B20-B24)", "HIV", df$Leading.Cause)
+
+df
+
+#gsub doesn't work, cut character strings to 10 characters
+# df$Leading.Cause = substr(df$Leading.Cause, 1,15)
+# df$Leading.Cause
+
+# ===== Total Deaths Analysis ======
+
+tot_death = sum(as.numeric(df$Deaths), na.rm = TRUE)
+tot_death #424998
+
+overview = df %>% group_by (Year) %>% summarise(Total = sum(Death.Rate, na.rm = TRUE))
+overview1 = df %>% group_by (Year) %>% summarise(Total1 = sum(Age.Adjusted.Death.Rate, na.rm = TRUE))
+#p <- ggplot(data=overview, aes(x=Year, y=Total)) + geom_bar(stat="identity") + labs(title="Total Death Count by Year in NYC")
+Death.Count <- cbind(overview, overview1)
+
+#dygraph(Death.Count)
+dygraph(Death.Count) %>% dySeries("Total", label = "Death Rate") %>% dySeries("Total1", label = "Age Adjusted") %>% dyRangeSelector(height = 20)
+
+
+
+by_gender = df %>% group_by(Year, Sex) %>% summarise(Total = sum(Deaths, na.rm = TRUE))
+by_gender
+p1 <- ggplot(data=by_gender, aes(x=Year, y=Total, fill=Sex)) + geom_bar(position = "dodge", stat="identity") + labs(title="Total Death Count by Gender in NYC")
+p1
+
+by_race = df %>% group_by(Year, Race.Ethnicity) %>% summarise(Total = sum(Deaths, na.rm = TRUE))
+by_race
+p2 <- ggplot(data=by_race, aes(x=Year, y=Total, fill=Race.Ethnicity)) + geom_bar(position = "dodge", stat="identity") + labs(title="Total Death Count by Ethnicity in NYC")
+p2
+
+df$Dea
+
+# male_sub <- subset(df, Sex == "Male",select = c("Year","Race.Ethnicity","Sex", "Deaths"))
+# male_sub
+# by_race_male = male_sub %>% group_by(Year, Race.Ethnicity) %>% summarise(Total = sum(Deaths, na.rm = TRUE))
+# by_race_male
+# p3 <- ggplot(data=by_race_male, aes(x=Year, y=Total, fill=Race.Ethnicity)) + geom_bar(position = "dodge", stat="identity") + labs(title="Total Death Count for Men by Ethnicity in NYC")
+# p3
+# 
+# female_sub <- subset(df, Sex == "Female",select = c("Year","Race.Ethnicity","Sex", "Deaths"))
+# female_sub
+# by_race_female = female_sub %>% group_by(Year, Race.Ethnicity) %>% summarise(Total = sum(Deaths, na.rm = TRUE))
+# by_race_female
+# p4 <- ggplot(data=by_race_female, aes(x=Year, y=Total, fill=Race.Ethnicity)) + geom_bar(position = "dodge", stat="identity") + labs(title="Total Death Count for Women by Ethnicity in NYC")
+# p4
+
+by_cause = df %>% group_by(Year, Leading.Cause) %>% summarise(Total = sum(Deaths, na.rm = TRUE))
+by_cause 
+p5 <- ggplot(data=by_cause, aes(x=Year, y=Total, fill=Leading.Cause)) + geom_bar(position = "dodge", stat="identity") + labs(title="Total Death Count by Leading Cause in NYC")
+p5
+
+by_cause_race = df %>% group_by(Race.Ethnicity, Leading.Cause) %>% summarise(Total = sum(Deaths, na.rm = TRUE))
+by_cause_race
+p6 <- ggplot(data=by_cause_race, aes(x=Race.Ethnicity, y=Total, fill=Leading.Cause)) + geom_bar(position = "dodge", stat="identity") + labs(title="Total Death Count by Leading Cause in NYC")
+p6
+
+# Age Adjusted
+by_cause_age = df %>% group_by(Year, Leading.Cause) %>% summarise(Total = sum(Age.Adjusted.Death.Rate, na.rm = TRUE))
+by_cause_age 
+p7 <- ggplot(data=by_cause_age, aes(x=Year, y=Total, fill=Leading.Cause)) + geom_bar(position = "dodge", stat="identity") + labs(title="Total Age Adjusted Death Count by Leading Cause in NYC")
+p7
+
+sub = subset(df, Race.Ethnicity != "Other Race/ Ethnicity" & Race.Ethnicity != "Not Stated/Unknown", select = c("Year","Leading.Cause", "Race.Ethnicity","Sex", "Deaths", "Age.Adjusted.Death.Rate"))
+sub
+
+by_cause_race_age = df %>% group_by(Race.Ethnicity, Leading.Cause) %>% summarise(Total = sum(Age.Adjusted.Death.Rate, na.rm = TRUE))
+by_cause_race_age 
+p8 <- ggplot(data=by_cause_race_age, aes(x=Race.Ethnicity, y=Total, fill=Leading.Cause)) + geom_bar(position = "dodge", stat="identity") + labs(title="Total Age Adjusted Death Count by Leading Cause in NYC")
+p8
+
+#======== Observing Cause of Deaths by Race and Ethnicity and Gender ============
+
+his_sub <- subset(df, Race.Ethnicity == "Hispanic", select = c("Year","Leading.Cause", "Race.Ethnicity","Sex", "Deaths", "Age.Adjusted.Death.Rate"))
+
+
+
+cause1= his_sub %>% group_by(Year, Leading.Cause, Sex) %>% summarise(Total = sum(Age.Adjusted.Death.Rate, na.rm = TRUE)) %>% top_n(n = 7, wt = Total)
+cause1
+
+
+
+
+p9 = ggplot(cause1, aes(x=Year, y=Leading.Cause, size=Total, color=Sex)) +geom_point(alpha=0.5) + scale_size(range = c(.1, 24), name="Total Death Count")
+ggplotly(p9)
+
+# Asian and Pacific Islanders
+
+a_sub <- subset(df, Race.Ethnicity == "Asian and Pacific Islander", select = c("Year","Leading.Cause", "Race.Ethnicity","Sex", "Deaths", "Age.Adjusted.Death.Rate"))
+a_sub
+
+cause2= a_sub %>% group_by(Year, Leading.Cause, Sex) %>% summarise(Total = sum(Age.Adjusted.Death.Rate, na.rm = TRUE))%>% top_n(n = 7, wt = Total)
+cause2
+
+p10 = ggplot(cause2, aes(x=Year, y=Leading.Cause, size=Total, color=Sex)) +geom_point(alpha=0.5) + scale_size(range = c(.1, 24), name="Total Death Count")
+p10
+
+
+# White Non-Hispanic
+w_sub <- subset(df, Race.Ethnicity == "White Non-Hispanic", select = c("Year","Leading.Cause", "Race.Ethnicity","Sex", "Deaths", "Age.Adjusted.Death.Rate"))
+w_sub
+
+cause3= w_sub %>% group_by(Year, Leading.Cause, Sex) %>% summarise(Total = sum(Age.Adjusted.Death.Rate, na.rm = TRUE))%>% top_n(n = 7, wt = Total)
+cause3
+
+p11 = ggplot(cause3, aes(x=Year, y=Leading.Cause, size=Total, color=Sex)) +geom_point(alpha=0.5) + scale_size(range = c(.1, 24), name="Total Death Count")
+p11
+
+#Black Non-Hispanic
+b_sub <- subset(df, Race.Ethnicity == "Black Non-Hispanic", select = c("Year","Leading.Cause", "Race.Ethnicity","Sex", "Deaths", "Age.Adjusted.Death.Rate"))
+b_sub
+
+cause4= b_sub %>% group_by(Year, Leading.Cause, Sex) %>% summarise(Total = sum(Age.Adjusted.Death.Rate, na.rm = TRUE))%>% top_n(n = 7, wt = Total)
+cause4
+
+p12 = ggplot(cause4, aes(x=Year, y=Leading.Cause, size=Total, color=Sex)) +geom_point(alpha=0.5) + scale_size(range = c(.1, 24), name="Total Death Count")
+p12
+
+#Oter
+o_sub <- subset(df, Race.Ethnicity == "Other Race/ Ethnicity", select = c("Year","Leading.Cause", "Race.Ethnicity","Sex", "Deaths", "Age.Adjusted.Death.Rate"))
+o_sub
+
+cause5= o_sub %>% group_by(Year, Leading.Cause, Sex) %>% summarise(Total = sum(Age.Adjusted.Death.Rate, na.rm = TRUE))%>% top_n(n = 7, wt = Total)
+cause5
+
+p13 = ggplot(cause5, aes(x=Year, y=Leading.Cause, size=Total, color=Sex)) +geom_point(alpha=0.5) + scale_size(range = c(.1, 24), name="Total Death Count")
+p13
+
+#= Heart Disease, Cancer and Other Causes Seem Like the Top 3 Cause of Deaths in NYC===
+
+head(df$Leading.Cause, 10)
+heart_sub <- subset(df, Leading.Cause == "Diseases of Hea", select = c("Year","Leading.Cause", "Race.Ethnicity","Sex", "Deaths", "Age.Adjusted.Death.Rate"))
+heart_sub
+
+cause6= heart_sub %>% group_by(Year, Race.Ethnicity) %>% summarise(Total = sum(Deaths, na.rm = TRUE))%>% top_n(n = 7, wt = Total)
+cause6
+
+p14 <- ggplot(data=cause6, aes(x=Year, y=Total, fill=Race.Ethnicity)) + geom_bar(position = "dodge", stat="identity") + labs(title="Total Death Count in Heart Disease by Ethnicity in NYC") + coord_flip()
+p14
+
+pic <- ggplot(cause6, aes(x = Year, y = Total)) +
+        geom_boxplot(colour = line, alpha = 0.7,
+                     outlier.colour = "#1F3552", outlier.shape = 20) 
+        ggtitle("Boxplot of mean ozone by month") + theme_bw()
+pic
+
+cause7= heart_sub %>% group_by(Year, Race.Ethnicity) %>% summarise(Total = sum(Age.Adjusted.Death.Rate, na.rm = TRUE))%>% top_n(n = 7, wt = Total)
+cause7
+
+p15 <- ggplot(data=cause7, aes(x=Year, y=Total, fill=Race.Ethnicity)) + geom_bar(position = "dodge", stat="identity") + labs(title="Total Death Count in Heart Disease by Ethnicity in NYC") + coord_flip()
+p15
+
+#========= By Cancer 
+
+head(df$Leading.Cause, 10)
+cancer_sub <- subset(df, Leading.Cause == "Malignant Neopl", select = c("Year","Leading.Cause", "Race.Ethnicity","Sex", "Deaths", "Age.Adjusted.Death.Rate"))
+
+cause8= cancer_sub %>% group_by(Year, Race.Ethnicity) %>% summarise(Total = sum(Deaths, na.rm = TRUE))%>% top_n(n = 7, wt = Total)
+
+p16 <- ggplot(data=cause8, aes(x=Year, y=Total, fill=Race.Ethnicity)) + geom_bar(position = "dodge", stat="identity") + labs(title="Total Death Count in Heart Disease by Ethnicity in NYC") + coord_flip()
+p16
+
+cause9= cancer_sub %>% group_by(Year, Race.Ethnicity) %>% summarise(Total = sum(Age.Adjusted.Death.Rate, na.rm = TRUE))%>% top_n(n = 7, wt = Total)
+
+p17 <- ggplot(data=cause9, aes(x=Year, y=Total, fill=Race.Ethnicity)) + geom_bar(position = "dodge", stat="identity") + labs(title="Total Death Count in Heart Disease by Ethnicity in NYC") + coord_flip()
+p17
+
+#Top 3 causes by race and gender
+
+his_sub_m = subset(his_sub,Sex == "Male" & Leading.Cause!="All Other Cause", select = c("Year","Leading.Cause", "Race.Ethnicity","Sex", "Deaths", "Age.Adjusted.Death.Rate"))
+
+his_sub_f = subset(his_sub,Sex == "Female" & Leading.Cause!="All Other Cause", select = c("Year","Leading.Cause", "Race.Ethnicity","Sex", "Deaths", "Age.Adjusted.Death.Rate"))
+
+a_sub_m = subset(a_sub,Sex == "Male" & Leading.Cause!="All Other Cause", select = c("Year","Leading.Cause", "Race.Ethnicity","Sex", "Deaths", "Age.Adjusted.Death.Rate"))
+
+a_sub_f = subset(a_sub,Sex == "Female" & Leading.Cause!="All Other Cause", select = c("Year","Leading.Cause", "Race.Ethnicity","Sex", "Deaths", "Age.Adjusted.Death.Rate"))
+
+w_sub_m = subset(w_sub,Sex == "Male" & Leading.Cause!="All Other Cause", select = c("Year","Leading.Cause", "Race.Ethnicity","Sex", "Deaths", "Age.Adjusted.Death.Rate"))
+
+w_sub_f = subset(w_sub,Sex == "Female" & Leading.Cause!="All Other Cause", select = c("Year","Leading.Cause", "Race.Ethnicity","Sex", "Deaths", "Age.Adjusted.Death.Rate"))
+
+b_sub_m = subset(his_sub,Sex == "Male" & Leading.Cause!="All Other Cause", select = c("Year","Leading.Cause", "Race.Ethnicity","Sex", "Deaths", "Age.Adjusted.Death.Rate"))
+
+b_sub_f = subset(his_sub,Sex == "Female" & Leading.Cause!="All Other Cause", select = c("Year","Leading.Cause", "Race.Ethnicity","Sex", "Deaths", "Age.Adjusted.Death.Rate"))
+o_sub_m = subset(his_sub,Sex == "Male" & Leading.Cause!="All Other Cause", select = c("Year","Leading.Cause", "Race.Ethnicity","Sex", "Deaths", "Age.Adjusted.Death.Rate"))
+
+o_sub_f = subset(his_sub,Sex == "Female" & Leading.Cause!="All Other Cause", select = c("Year","Leading.Cause", "Race.Ethnicity","Sex", "Deaths", "Age.Adjusted.Death.Rate"))
+
+cause.1= his_sub_m %>% group_by(Year, Leading.Cause) %>% summarise(Total = sum(Age.Adjusted.Death.Rate, na.rm = TRUE)) %>% top_n(n = 3, wt = Total)
+cause.1
+
+cause.2= his_sub_f %>% group_by(Year, Leading.Cause) %>% summarise(Total = sum(Age.Adjusted.Death.Rate, na.rm = TRUE)) %>% top_n(n = 3, wt = Total)
+cause.2
+
+cause.3= a_sub_m %>% group_by(Year, Leading.Cause) %>% summarise(Total = sum(Age.Adjusted.Death.Rate, na.rm = TRUE)) %>% top_n(n = 3, wt = Total)
+cause.3
+
+cause.4= a_sub_f %>% group_by(Year, Leading.Cause) %>% summarise(Total = sum(Age.Adjusted.Death.Rate, na.rm = TRUE)) %>% top_n(n = 3, wt = Total)
+cause.4
+
+cause.5= w_sub_m %>% group_by(Year, Leading.Cause) %>% summarise(Total = sum(Age.Adjusted.Death.Rate, na.rm = TRUE)) %>% top_n(n = 3, wt = Total)
+cause.5
+
+cause.6= w_sub_f %>% group_by(Year, Leading.Cause) %>% summarise(Total = sum(Age.Adjusted.Death.Rate, na.rm = TRUE)) %>% top_n(n = 3, wt = Total)
+cause.6
+
+cause.7= b_sub_m %>% group_by(Year, Leading.Cause) %>% summarise(Total = sum(Age.Adjusted.Death.Rate, na.rm = TRUE)) %>% top_n(n = 3, wt = Total)
+cause.7
+
+cause.8= b_sub_f %>% group_by(Year, Leading.Cause) %>% summarise(Total = sum(Age.Adjusted.Death.Rate, na.rm = TRUE)) %>% top_n(n = 3, wt = Total)
+cause.8
+
+cause.9= o_sub_m %>% group_by(Year, Leading.Cause) %>% summarise(Total = sum(Age.Adjusted.Death.Rate, na.rm = TRUE)) %>% top_n(n = 3, wt = Total)
+cause.9
+
+cause.10= o_sub_f %>% group_by(Year, Leading.Cause) %>% summarise(Total = sum(Age.Adjusted.Death.Rate, na.rm = TRUE)) %>% top_n(n = 3, wt = Total)
+cause.10
+
+
+
+
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+

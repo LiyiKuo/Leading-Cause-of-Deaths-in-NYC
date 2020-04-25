@@ -1,11 +1,11 @@
 fluidPage(
   dashboardPage(
     skin = "black",
-    
+ 
     dashboardHeader(
       title = "What Kills New Yorkers?", titleWidth = 250
     ),
-    dashboardSidebar(width = 250,
+    dashboardSidebar(width = 300,
                      sidebarMenu(
                        #uiOutput("Year"),
                        menuItem('Introduction',tabName = 'Introduction',icon = icon("comments-o")),
@@ -45,14 +45,14 @@ fluidPage(
                 
       
         tabItem(tabName = "Overview", fluidRow(dygraphOutput("Overview"))),
-        tabItem(tabName = "TotalDeathCountByGender", fluidRow(plotlyOutput("TotalDeathCountByGender"))),
-        tabItem(tabName = "TotalDeathCountByRaceEthnicity", fluidRow(plotlyOutput("TotalDeathCountByRaceEthnicity"))),
-        tabItem(tabName = "TotalDeathCountByLeadingCause", fluidRow(plotlyOutput("TotalDeathCountByLeadingCause"))),
+        tabItem(tabName = "TotalDeathCountByGender", fluidRow(plotOutput("TotalDeathCountByGender"))),
+        tabItem(tabName = "TotalDeathCountByRaceEthnicity", fluidRow(plotOutput("TotalDeathCountByRaceEthnicity"))),
+        tabItem(tabName = "TotalDeathCountByLeadingCause", fluidRow(plotOutput("TotalDeathCountByLeadingCause"))),
         
-        tabItem(tabName = "AgeAdjustedLeadingCauseOfDeath", fluidRow(plotlyOutput("AgeAdjustedLeadingCauseOfDeath"))),
-        tabItem(tabName = "AgeAdjustedLeadingCauseOfDeathByRace", fluidRow(plotlyOutput("AgeAdjustedLeadingCauseOfDeathByRace"))),
-        tabItem(tabName = "AgeAdjHeartDiseaseData", fluidRow(plotlyOutput("AgeAdjHeartDiseaseData"))),
-        tabItem(tabName = "AgeAdjCancerData", fluidRow(plotlyOutput("AgeAdjCancerData"))),
+        tabItem(tabName = "AgeAdjustedLeadingCauseOfDeath", fluidRow(plotOutput("AgeAdjustedLeadingCauseOfDeath"))),
+        tabItem(tabName = "AgeAdjustedLeadingCauseOfDeathByRace", fluidRow(plotOutput("AgeAdjustedLeadingCauseOfDeathByRace"))),
+        tabItem(tabName = "AgeAdjHeartDiseaseData", fluidRow(plotOutput("AgeAdjHeartDiseaseData"))),
+        tabItem(tabName = "AgeAdjCancerData", fluidRow(plotOutput("AgeAdjCancerData"))),
         
         tabItem(tabName = "HispanicData", fluidRow(plotlyOutput("HispanicData", width = "600px", height = "500px"))),
         tabItem(tabName = "AsianandPacificIslandersData", fluidRow(plotlyOutput("AsianandPacificIslandersData", width = "600px", height = "500px"))),
@@ -67,12 +67,9 @@ fluidPage(
                                 Disorders due to Accidental Poisoning and Other Psychoactive Substance Use, Human Immunodeficiency Virus Disease, Intentional Self-Harm,
                                 Nephritis, Nephrotic Syndrome and Nephrosis, Essential Hypertension, Assult, and Renal Diseases] have noticible higher prevalence in 
                                 specific race(s)/ethnicity(ies) but not others. Female in general has higher susceptibility to death related to Alzheimer's 
-                                Disease and Septicemia than male"), width = 600, align = "left")),
-                br(),
-                fluidRow(img(src="https://guyhepner.com/wp-content/uploads/2015/06/THATSALLFOLKS.jpg"), height = 400, width = 800, align = "center"))
+                                Disease and Septicemia than male"), width = 600, align = "left"))
         
                 
                 )
-      )  
-    )
-  )
+      ))))
+

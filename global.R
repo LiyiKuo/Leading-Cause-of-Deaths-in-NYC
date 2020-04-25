@@ -5,7 +5,6 @@ library(dygraphs)
 library(gridExtra)
 library(rlist)
 library(shinydashboard)
-library(bubbles)
 library(plotly)
 
 df <- read.csv("New_York_City_Leading_Causes_of_Death.csv")
